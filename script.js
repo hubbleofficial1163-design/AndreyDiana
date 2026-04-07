@@ -14,9 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Таймер отсчета до свадьбы
-// Таймер отсчета до свадьбы
 function updateCountdown() {
-    const weddingDate = new Date('2026-08-02T15:00:00');  // Исправлено на 2 августа 2026
+    const weddingDate = new Date('2026-08-02T15:00:00');
     const now = new Date();
     const diff = weddingDate - now;
     
@@ -31,8 +30,7 @@ function updateCountdown() {
         const minutesEl = document.getElementById('minutes');
         const secondsEl = document.getElementById('seconds');
         
-        // Убираем padStart для дней, чтобы не было ведущих нулей
-        if (daysEl) daysEl.textContent = days.toString();  // Было: padStart(3, '0')
+        if (daysEl) daysEl.textContent = days.toString();
         if (hoursEl) hoursEl.textContent = hours.toString().padStart(2, '0');
         if (minutesEl) minutesEl.textContent = minutes.toString().padStart(2, '0');
         if (secondsEl) secondsEl.textContent = seconds.toString().padStart(2, '0');
@@ -83,193 +81,196 @@ function initMusicPlayer() {
     });
 }
 
-// Обработчик формы RSVP
-function initRSVPForm() {
-    const rsvpForm = document.querySelector('.rsvp-form');
-    if (!rsvpForm) return;
-    
-    rsvpForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Показать индикатор загрузки
-        const submitBtn = this.querySelector('.submit-button');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Отправка...';
-        submitBtn.disabled = true;
-        
-        try {
-            // Сбор данных формы
-            const formData = {
-                name: this.querySelector('input[type="text"]').value.trim(),
-                phone: this.querySelector('input[type="tel"]').value.trim(),
-                guests: this.querySelector('.form-select').value || '1',
-                attendance: this.querySelector('input[name="attendance"]:checked')?.value
-            };
-            
-            console.log('Отправляемые данные:', formData);
-            
-            // Проверка
-            if (!formData.name || !formData.phone || !formData.attendance) {
-                throw new Error('Пожалуйста, заполните все обязательные поля');
+// ========== МОДАЛЬНОЕ ОКНО ==========
+function showModal(title, message, isError = false) {
+    const existingModal = document.getElementById('customModal');
+    if (existingModal) existingModal.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'customModal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        animation: fadeIn 0.3s ease;
+    `;
+
+    const icon = isError ? '❌' : '✅';
+    const titleColor = isError ? '#721c24' : '#155724';
+    const btnColor = isError ? '#dc3545' : '#28a745';
+
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 20px;
+            padding: 30px 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+            border-top: 4px solid ${btnColor};
+        ">
+            <div style="font-size: 4rem; margin-bottom: 15px;">${icon}</div>
+            <h3 style="
+                font-family: 'Dancing Script', cursive;
+                font-size: 1.8rem;
+                color: ${titleColor};
+                margin-bottom: 15px;
+            ">${title}</h3>
+            <p style="
+                font-family: 'Cormorant Garamond', serif;
+                font-size: 1.2rem;
+                color: #4a5345;
+                margin-bottom: 25px;
+                line-height: 1.5;
+            ">${message}</p>
+            <button onclick="this.closest('#customModal').remove()" style="
+                background: ${btnColor};
+                color: white;
+                border: none;
+                padding: 12px 30px;
+                border-radius: 50px;
+                font-family: 'Cormorant Garamond', serif;
+                font-size: 1.1rem;
+                cursor: pointer;
+                transition: all 0.3s;
+            " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                Закрыть
+            </button>
+        </div>
+    `;
+
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
             }
-            
-            // Отправка через JSONP (работает с CORS)
-            sendToGoogleSheetsJSONP(formData, function(success, message) {
-                // Восстановить кнопку
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-                
-                if (success) {
-                    if (formData.attendance === 'yes') {
-                        alert('✅ Спасибо! Мы будем ждать вас на нашей свадьбе 8 июня 2026 года!');
-                    } else {
-                        alert('📝 Спасибо за ваш ответ!');
-                    }
-                    
-                    // Очистка формы
-                    rsvpForm.reset();
-                } else {
-                    alert('❌ Ошибка: ' + message);
-                }
-            });
-            
-        } catch (error) {
-            console.error('Ошибка отправки:', error);
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            alert('❌ Ошибка: ' + error.message);
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+    `;
+    document.head.appendChild(style);
+
+    document.body.appendChild(modal);
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
     });
+
+    if (!isError) {
+        setTimeout(() => {
+            if (modal.parentElement) modal.remove();
+        }, 5000);
+    }
 }
 
-// Функция отправки через JSONP
-function sendToGoogleSheetsJSONP(formData, callback) {
-    // Замените на ваш URL Google Apps Script
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyum29eKLlqq0ARRQLxfqugjPXJ4W0A5IAR-1e4Tfv_j1m4LeLFpw5ahHDx9hbWeqQI/exec';
-    
-    // Создаем уникальное имя для callback функции
-    const callbackName = 'jsonp_callback_' + Date.now();
-    
-    // Добавляем параметры к URL
-    const params = new URLSearchParams({
-        name: formData.name,
-        phone: formData.phone,
-        guests: formData.guests,
-        attendance: formData.attendance,
-        callback: callbackName
-    });
-    
-    const url = SCRIPT_URL + '?' + params.toString();
-    
-    // Создаем функцию обратного вызова
-    window[callbackName] = function(response) {
-        console.log('Ответ от сервера:', response);
-        
-        // Удаляем callback
-        delete window[callbackName];
-        
-        if (response && response.success) {
-            callback(true, response.message || 'Успешно отправлено');
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCtkB74_ADDt4VS1Qx1XHJRprevpepodUFo-Gu3-k_YOsmo-9Hee2Xqn-AdShmzfPv/exec';
+
+function showModal(title, message, isError = false) {
+    const existingModal = document.getElementById('customModal');
+    if (existingModal) existingModal.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'customModal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    `;
+
+    const icon = isError ? '❌' : '✅';
+    const btnColor = isError ? '#dc3545' : '#28a745';
+
+    modal.innerHTML = `
+        <div style="background: white; border-radius: 20px; padding: 30px 40px; max-width: 400px; width: 90%; text-align: center; border-top: 4px solid ${btnColor};">
+            <div style="font-size: 4rem; margin-bottom: 15px;">${icon}</div>
+            <h3 style="font-family: 'Dancing Script', cursive; font-size: 1.8rem; margin-bottom: 15px;">${title}</h3>
+            <p style="font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; margin-bottom: 25px;">${message}</p>
+            <button onclick="this.closest('#customModal').remove()" style="background: ${btnColor}; color: white; border: none; padding: 12px 30px; border-radius: 50px; cursor: pointer;">Закрыть</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    if (!isError) setTimeout(() => modal.remove(), 5000);
+}
+
+document.querySelector('.rsvp-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('.submit-button');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Отправка...';
+
+    try {
+        const name = e.target.querySelector('input[type="text"]').value.trim();
+        const phone = e.target.querySelector('input[type="tel"]').value.trim();
+        const guests = e.target.querySelector('.form-select').value;
+        const attendance = e.target.querySelector('input[name="attendance"]:checked')?.value;
+
+        if (!name || !phone) throw new Error('Заполните имя и телефон');
+        if (!attendance) throw new Error('Выберите вариант присутствия');
+
+        const formData = new URLSearchParams();
+        formData.append('name', name);
+        formData.append('phone', phone);
+        formData.append('guests', guests);
+        formData.append('attendance', attendance);
+
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+        });
+        const result = await response.json();
+
+        if (result.result === 'success') {
+            showModal('Спасибо!', 'Ваш ответ успешно отправлен! Ждём вас! 🎉', false);
+            e.target.reset();
         } else {
-            callback(false, response?.message || 'Ошибка сервера');
+            throw new Error(result.message);
         }
-    };
-    
-    // Создаем script элемент
-    const script = document.createElement('script');
-    script.src = url;
-    
-    // Обработка ошибок
-    script.onerror = function() {
-        console.error('Ошибка загрузки скрипта');
-        delete window[callbackName];
-        callback(false, 'Ошибка подключения к серверу');
-    };
-    
-    // Добавляем скрипт на страницу
-    document.body.appendChild(script);
-    
-    // Удаляем скрипт после загрузки
-    setTimeout(() => {
-        if (document.body.contains(script)) {
-            document.body.removeChild(script);
-        }
-    }, 10000); // 10 секунд таймаут
-}
+    } catch (error) {
+        showModal('Ошибка', error.message, true);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+});
 
-// Для отладки: вызовите testConnection() в консоли браузера
-window.testConnection = testConnection;
-
-// Исправление для мобильного viewport (проблема с адресной строкой)
-// Исправление для мобильного viewport (особенно для Telegram)
+// Исправление для мобильного viewport
 function setMobileHeroHeight() {
     const hero = document.querySelector('.hero');
     if (!hero) return;
     
-    // Устанавливаем высоту равной внутренней высоте окна
     const vh = window.innerHeight;
     hero.style.height = vh + 'px';
     hero.style.minHeight = vh + 'px';
-    
-    // Проверяем, открыт ли сайт в Telegram
-    const isTelegram = navigator.userAgent.toLowerCase().includes('telegram');
-    
-    if (isTelegram) {
-        // Дополнительная корректировка для Telegram
-        const heroPhoto = document.querySelector('.hero-photo');
-        const heroContent = document.querySelector('.hero-content');
-        
-        if (heroPhoto && heroContent) {
-            // Если фото все еще наезжает, добавляем отступ
-            const contentBottom = heroContent.getBoundingClientRect().bottom;
-            const photoTop = heroPhoto.getBoundingClientRect().top;
-            
-            if (photoTop < contentBottom + 20) {
-                heroContent.style.paddingBottom = '20px';
-            }
-        }
-    }
 }
 
-// Вызываем при загрузке
 setMobileHeroHeight();
-
-// Вызываем при изменении ориентации или размера окна
-window.addEventListener('resize', () => {
-    setMobileHeroHeight();
-});
-
-// Для некоторых мобильных браузеров нужно также при скролле
-window.addEventListener('scroll', () => {
-    // Только если адресная строка скрывается/показывается
-    const hero = document.querySelector('.hero');
-    if (hero && window.innerHeight !== parseInt(hero.style.height)) {
-        setMobileHeroHeight();
-    }
-});
-
-// Также полезно для Safari на iOS
-window.addEventListener('orientationchange', () => {
-    setTimeout(setMobileHeroHeight, 100);
-});
-
-// Вызываем при загрузке
-setMobileHeroHeight();
-
-// Вызываем при изменении ориентации или размера окна
-window.addEventListener('resize', () => {
-    setMobileHeroHeight();
-});
-
-// Для некоторых мобильных браузеров нужно также при скролле
-window.addEventListener('scroll', () => {
-    // Только если адресная строка скрывается/показывается
-    if (window.innerHeight !== parseInt(document.querySelector('.hero').style.height)) {
-        setMobileHeroHeight();
-    }
-});
-
-// Также полезно для Safari на iOS
-window.addEventListener('orientationchange', () => {
-    setTimeout(setMobileHeroHeight, 100);
-});
+window.addEventListener('resize', setMobileHeroHeight);
+window.addEventListener('orientationchange', () => setTimeout(setMobileHeroHeight, 100));
