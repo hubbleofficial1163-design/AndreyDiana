@@ -14,8 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Таймер отсчета до свадьбы
+// Таймер отсчета до свадьбы
 function updateCountdown() {
-    const weddingDate = new Date('2026-06-08T15:30:00');
+    const weddingDate = new Date('2026-08-02T15:00:00');  // Исправлено на 2 августа 2026
     const now = new Date();
     const diff = weddingDate - now;
     
@@ -30,7 +31,8 @@ function updateCountdown() {
         const minutesEl = document.getElementById('minutes');
         const secondsEl = document.getElementById('seconds');
         
-        if (daysEl) daysEl.textContent = days.toString().padStart(3, '0');
+        // Убираем padStart для дней, чтобы не было ведущих нулей
+        if (daysEl) daysEl.textContent = days.toString();  // Было: padStart(3, '0')
         if (hoursEl) hoursEl.textContent = hours.toString().padStart(2, '0');
         if (minutesEl) minutesEl.textContent = minutes.toString().padStart(2, '0');
         if (secondsEl) secondsEl.textContent = seconds.toString().padStart(2, '0');
