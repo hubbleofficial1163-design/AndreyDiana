@@ -1275,3 +1275,110 @@ a,
         gap: 25px;
     }
 }
+
+/* ===== ИСПРАВЛЕНИЯ ДЛЯ ТАЙМЕРА ===== */
+
+/* Убираем фиксированную ширину и делаем таймер полностью адаптивным */
+.countdown-timer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.countdown-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: auto;
+    padding: 0 5px;
+}
+
+.countdown-number {
+    font-size: 2.5rem;
+    white-space: nowrap;
+}
+
+.countdown-label {
+    font-size: 0.7rem;
+    white-space: nowrap;
+}
+
+.countdown-separator {
+    display: inline-block;
+    margin: 0 2px;
+}
+
+/* Для экранов до 600px */
+@media screen and (max-width: 600px) {
+    .countdown-number {
+        font-size: 2rem;
+    }
+    
+    .countdown-label {
+        font-size: 0.65rem;
+    }
+    
+    .countdown-separator {
+        font-size: 1.8rem;
+        margin: 0 1px;
+    }
+    
+    .countdown-item {
+        padding: 0 3px;
+    }
+}
+
+/* Для экранов до 480px */
+@media screen and (max-width: 480px) {
+    .countdown-number {
+        font-size: 1.5rem;
+    }
+    
+    .countdown-label {
+        font-size: 0.55rem;
+    }
+    
+    .countdown-separator {
+        font-size: 1.4rem;
+    }
+    
+    .countdown-item {
+        padding: 0 2px;
+    }
+}
+
+/* Для экранов до 400px - убираем разделители и переносим */
+@media screen and (max-width: 400px) {
+    .countdown-timer {
+        gap: 8px;
+    }
+    
+    .countdown-separator {
+        display: none;
+    }
+    
+    .countdown-number {
+        font-size: 1.8rem;
+    }
+    
+    .countdown-label {
+        font-size: 0.6rem;
+    }
+    
+    .countdown-item {
+        min-width: 70px;
+    }
+}
+
+/* Для экранов до 340px */
+@media screen and (max-width: 340px) {
+    .countdown-item {
+        min-width: 60px;
+    }
+    
+    .countdown-number {
+        font-size: 1.5rem;
+    }
+}
